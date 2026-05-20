@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KARADA 10X | Безжалостное масштабирование продаж в Казахстане</title>
+    <!-- Подключение Tailwind CSS для рендеринга премиального интерфейса -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Подключение Alpine.js для реактивного управления состояниями и LocalStorage -->
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Премиальные геометрические шрифты Space Grotesk и Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #03060E;
+            color: #E6E6E6;
+        }
+        .header-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        /* Премиальный ультра-тонкий скроллбар */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #03060E;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #0E131F;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #B91C1C;
+        }
+        /* CSS-свечения для создания эффекта Premium Liquid Glass */
+        .glass-panel {
+            background: rgba(12, 16, 26, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        /* Анимация лазерного сканирования Kaspi QR-кода */
+        .laser-scan {
+            animation: laserScan 2.5s linear infinite;
+        }
+        @keyframes laserScan {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
+        }
+        /* Анимация плавного появления контента */
+        .fade-in {
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="antialiased overflow-x-hidden min-h-screen flex flex-col justify-between" 
+      x-data="{ 
+         timeLeft: 900, 
+         seatsLeft: 3, 
+         bleedingKzt: 0,
+         leadsCount: 400,
+         staffCount: 3,
+         staffSalary: 350000,
+         leadValue: 30000,
+         checkoutModal: false,
+         checkoutStep: 'intake',
+         leadName: '',
+         leadPhone: '',
+         companyName: '',
+         consentPDPL: false,
+         consentAI: false,
+         bump1Selected: false,
+         bump2Selected: false,
+         basePrice: 99970,
+         vslPlaying: false,
+         selectedBelief: 1,
+         logs: ['[SYSTEM] Инициализация ядра KARADA 10X. Ожидание реакций...'],
+         
+         // Инициализация персистентности LocalStorage
+         init() {
+            // Инициализация вечнозеленого таймера без сброса при обновлении
+            let storedEndTime = localStorage.getItem('karada_10x_timer_end');
+            let now = Math.floor(Date.now() / 1000);
+            if (!storedEndTime || parseInt(storedEndTime) <= now) {
+                let newEndTime = now + 900;
+                localStorage.setItem('karada_10x_timer_end', newEndTime.toString());
+                this.timeLeft = 900;
+            } else {
+                this.timeLeft = parseInt(storedEndTime) - now;
+            }
+            setInterval(() => {
+                let currentNow = Math.floor(Date.now() / 1000);
+                let end = parseInt(localStorage.getItem('karada_10x_timer_end'));
+                if (currentNow >= end) {
+                    let newEnd = currentNow + 900;
+                    localStorage.setItem('karada_10x_timer_end', newEnd.toString());
+                    this.timeLeft = 900;
+                    this.pushLog('Evergreen-таймер перезапущен. Психологическая срочность сохранена.');
+                } else {
+                    this.timeLeft = end - currentNow;
+                }
+            }, 1000);
+
+            // Инициализация лимита свободных лицензий
+            let storedSeats = localStorage.getItem('karada_10x_seats');
+            if (storedSeats) {
+                this.seatsLeft = parseInt(storedSeats);
+            } else {
+                this.seatsLeft = 3;
+                localStorage.setItem('karada_10x_seats', '3');
+            }
+            setInterval(() => {
+                if (this.seatsLeft > 1) {
+                    this.seatsLeft--;
+                    localStorage.setItem('karada_10x_seats', this.seatsLeft.toString());
+                    this.pushLog('Обострение дефицита: осталось свободных слотов - ' + this.seatsLeft);
+                }
+            }, 45000);
+
+            // Инициализация счетчика потерь
+            setInterval(() => {
+                this.bleedingKzt += 18;
+            }, 1000);
+         },
+
+         formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+         },
+
+         pushLog(message) {
+            this.logs = [...this.logs.slice(-2), '[n8n_PIPELINE] ' + message];
+         },
+
+         getCalculatedLoss() {
+            const monthlyStaffOverhead = this.staffCount * this.staffSalary;
+            const leaked = Math.round(this.leadsCount * 0.30);
+            const lost = leaked * this.leadValue;
+            return monthlyStaffOverhead + lost;
+         },
+
+         getCalculatedSavings() {
+            return this.getCalculatedLoss() - this.basePrice;
+         },
+
+         getFinalPrice() {
+            let price = this.basePrice;
+            if (this.bump1Selected) price += 45000;
+            if (this.bump2Selected) price += 15000;
+            return price;
+         },
+
+         openCheckout() {
+            this.checkoutStep = 'intake';
+            this.checkoutModal = true;
+            this.pushLog('Модальное окно открыто. Ожидание ввода данных Руководителя.');
+         },
+
+         closeCheckout() {
+            this.checkoutModal = false;
+            this.pushLog('Взаимодействие с формой оплаты приостановлено.');
+         },
+
+         handleIntakeSubmit() {
+            this.pushLog('Лид зафиксирован: ' + this.leadName + ' (' + this.companyName + '). Сохранение в amoCRM...');
+            this.checkoutStep = 'billing';
+            this.pushLog('Шаг 2: Генерация счета в Kaspi Pay API...');
+         },
+
+         simulatePaymentSuccess() {
+            this.pushLog('[KASPI_WEBHOOK] Зафиксирована транзакция PAYMENT_SUCCESS.');
+            this.checkoutStep = 'success';
+            this.pushLog('[ONBOARDING] Автоматизированная WhatsApp-рассылка KARADA запущена.');
+         }
+      }">
+
+    <!-- Фоновые интерактивные дизайнерские лазерные слои -->
+    <div class="absolute top-[-15%] left-[-15%] w-[700px] h-[700px] bg-red-950/20 blur-[150px] rounded-full pointer-events-none mix-blend-screen"></div>
+    <div class="absolute bottom-[-15%] right-[-15%] w-[700px] h-[700px] bg-blue-950/15 blur-[150px] rounded-full pointer-events-none mix-blend-screen"></div>
+
+    <!-- STICKY HEADER (NAVIGATION LEAK SHIELD) -->
+    <header class="w-full py-5 px-6 border-b border-white/[0.06] bg-[#03060E]/90 backdrop-blur-md sticky top-0 z-40 flex justify-between items-center select-none">
+        <div class="flex items-center gap-2">
+            <div class="w-2.5 h-2.5 rounded-full bg-[#A51D36] animate-pulse shadow-[0_0_10px_#B91C1C]"></div>
+            <span class="text-2xl font-black tracking-tighter text-white uppercase header-font">
+                KARADA.<span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">PRO</span>
+            </span>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2.5 text-xs font-mono text-gray-400 bg-black/40 px-4 py-2 rounded-full border border-white/[0.08] shadow-inner">
+                <svg class="w-4 h-4 text-[#A51D36] animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>ЗАМОРОЗКА ЦЕНЫ: <strong class="text-white font-mono font-bold" x-text="formatTime(timeLeft)">15:00</strong></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- COST OF INACTION TICKER (ПСИХОЛОГИЧЕСКОЕ ДАВЛЕНИЕ КАРДОНА) -->
+    <div class="w-full bg-[#A51D36]/10 border-b border-white/[0.06] py-3 px-4 text-center text-xs font-mono text-gray-300 z-30 select-none backdrop-blur-sm">
+        <span class="text-red-500 font-extrabold animate-pulse">⚠️ УПУЩЕННЫЙ ДОХОД:</span> За время вашего сеанса компании в Казахстане упустили: 
+        <strong class="text-white font-black font-mono text-sm" x-text="bleedingKzt.toLocaleString()">0</strong> ₸ из-за хаоса в ОП и неснятых возражений.
+    </div>
+
+    <!-- ОСНОВНОЙ КОНТЕНТ ВОРОНКИ -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 flex-grow w-full z-10 relative">
+
+        <!-- 1. ГЛАВНЫЙ ЭКРАН (HERO - DOMINANCE CLAIM) -->
+        <section class="pt-16 pb-16 text-center">
+            <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#A51D36]/10 border border-[#A51D36]/30 text-[#A51D36] text-xs font-black mb-8 uppercase tracking-wider select-none shadow-[0_4px_20px_rgba(165,29,54,0.15)]">
+                <svg class="w-4 h-4 animate-bounce text-[#A51D36]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                КРИЗИС 2026: Выживут только те компании, которые умеют продавать дорого и закрывать быстро
+            </div>
+            
+            <h1 class="text-4xl sm:text-5xl md:text-7xl font-black text-white leading-[1.05] tracking-tight mb-8 uppercase header-font select-none">
+                ОСТАНОВИТЕ УТЕЧКУ <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-600 to-orange-500">30% ВАШЕЙ МАРЖИ.</span><br>
+                ДОМИНИРУЙТЕ С ПОМОЩЬЮ СИСТЕМЫ 10X.
+            </h1>
+            
+            <p class="text-lg md:text-xl text-gray-400 font-medium max-w-3xl mx-auto mb-10 leading-relaxed font-light">
+                Пока ваши менеджеры сливают дорогие B2B-контракты из-за неумения обходить возражение «Подумаю», Университет Продаж KARADA перестраивает ваш отдел продаж в безотказный механизм генерации прибыли.
+            </p>
+
+            <!-- ДЕФИЦИТ МЕСТ (URGENCY) -->
+            <div class="max-w-md mx-auto bg-[#0C101A]/80 border border-white/[0.08] p-4 rounded-2xl flex justify-around items-center mb-12 shadow-[0_15px_35px_rgba(0,0,0,0.4)] select-none backdrop-blur-md">
+                <div class="text-center">
+                    <span class="text-[10px] uppercase tracking-wider text-gray-500 font-bold block mb-1">Свободно лицензий со скидкой</span>
+                    <span class="text-2xl font-black text-red-500 font-mono animate-pulse" x-text="seatsLeft + ' ИЗ 3'">3 ИЗ 3</span>
+                </div>
+                <div class="h-8 w-[1px] bg-white/[0.08]"></div>
+                <div class="text-center">
+                    <span class="text-[10px] uppercase tracking-wider text-gray-500 font-bold block mb-1">До сброса условий</span>
+                    <span class="text-2xl font-black text-white font-mono" x-text="formatTime(timeLeft)">15:00</span>
+                </div>
+            </div>
+
+            <!-- ИНТЕРАКТИВНЫЙ VSL ПЛЕЕР (РЕАЛЬНОЕ ЮТУБ ВИДЕО) -->
+            <div class="w-full aspect-video bg-[#0C101A] rounded-2xl border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex flex-col items-center justify-center mb-12 relative overflow-hidden group">
+                <div id="vsl-placeholder" x-show="!vslPlaying" class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent group-hover:bg-black/60 transition-all z-10 flex flex-col items-center justify-center p-8">
+                    <button @click="vslPlaying = true; pushLog('VSL поток запущен пользователем.')" class="w-20 h-20 bg-[#A51D36] hover:bg-red-600 text-white rounded-full flex items-center justify-center pl-1.5 shadow-[0_0_50px_rgba(165,29,54,0.5)] transform group-hover:scale-110 transition-transform duration-300">
+                        <svg class="w-10 h-10 fill-current text-white" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </button>
+                    <p class="mt-6 text-lg font-bold text-white tracking-wide text-center uppercase header-font">
+                        НАЖМИТЕ PLAY ДЛЯ ПРОСМОТРА КЛИЕНТСКИХ КЕЙСОВ В КАЗАХСТАНЕ
+                    </p>
+                    <span class="text-xs text-gray-500 font-mono mt-1">Доказательства системы: Высокие чеки, холодные звонки, снятие «Подумаю» // 3:56</span>
+                </div>
+                <div x-show="vslPlaying" class="absolute inset-0 z-20 w-full h-full">
+                    <template x-if="vslPlaying">
+                        <iframe class="w-full h-full rounded-2xl" src="https://www.youtube.com/embed/TTvOwyCCwcs?autoplay=1&rel=0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                    </template>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <button onclick="document.getElementById('calculator-section').scrollIntoView({ behavior: 'smooth' })" class="w-full sm:w-auto bg-[#A51D36] hover:bg-red-600 text-white text-lg font-black py-5 px-10 rounded-xl shadow-[0_10px_30px_rgba(165,29,54,0.3)] transition-all transform hover:-translate-y-1 flex items-center justify-center gap-3 uppercase header-font">
+                    Рассчитать потери ОП 
+                    <svg class="w-5 h-5 text-white animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                    </svg>
+                </button>
+                <button @click="openCheckout()" class="w-full sm:w-auto bg-white/[0.04] hover:bg-white/[0.08] text-white text-lg font-bold py-5 px-10 rounded-xl border border-white/[0.08] transition-all uppercase shadow-lg backdrop-blur-md">
+                    Вступить в Университет Продаж
+                </button>
+            </div>
+        </section>
+
+        <!-- 2. PAIN & AGITATION: КАЛЬКУЛЯТОР ФИНАНСОВЫХ ПОТЕРЬ -->
+        <section id="calculator-section" class="py-24 border-t border-white/[0.06] scroll-mt-20">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-black text-white uppercase header-font">Калькулятор финансовой утечки ОП в Казахстане</h2>
+                <p class="text-gray-400 mt-2 font-light">Выявите скрытые потери прибыли из-за неквалифицированной обработки возражений</p>
+            </div>
+
+            <div class="bg-[#0C101A]/90 border border-white/[0.08] rounded-3xl p-6 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-md">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10 mb-8">
+                  
+                    <!-- Слайдеры управления -->
+                    <div class="space-y-8">
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-3">
+                                <span class="text-gray-300">Месячный объем заявок компании:</span>
+                                <span class="text-red-500 font-bold font-mono text-sm bg-red-950/20 px-2.5 py-1 rounded border border-red-500/10" x-text="leadsCount + ' лидов'">400 лидов</span>
+                            </div>
+                            <input type="range" min="100" max="3000" step="50" x-model="leadsCount" class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-[#A51D36]">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-3">
+                                <span class="text-gray-300">Количество менеджеров по продажам:</span>
+                                <span class="text-red-500 font-bold font-mono text-sm bg-red-950/20 px-2.5 py-1 rounded border border-red-500/10" x-text="staffCount + ' человек'">3 человек</span>
+                            </div>
+                            <input type="range" min="1" max="10" step="1" x-model="staffCount" class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-[#A51D36]">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-3">
+                                <span class="text-gray-300">Средняя зарплата 1 менеджера в месяц:</span>
+                                <span class="text-red-500 font-bold font-mono text-sm bg-red-950/20 px-2.5 py-1 rounded border border-red-500/10" x-text="parseInt(staffSalary).toLocaleString() + ' ₸'">350,000 ₸</span>
+                            </div>
+                            <input type="range" min="150000" max="600000" step="10000" x-model="staffSalary" class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-[#A51D36]">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-3">
+                                <span class="text-gray-300">Средний чек вашей сделки / услуги (KZT):</span>
+                                <span class="text-red-500 font-bold font-mono text-sm bg-red-950/20 px-2.5 py-1 rounded border border-red-500/10" x-text="parseInt(leadValue).toLocaleString() + ' ₸'">30,000 ₸</span>
+                            </div>
+                            <input type="range" min="5000" max="100000" step="5000" x-model="leadValue" class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-[#A51D36]">
+                        </div>
+                    </div>
+
+                    <!-- Вывод вычислений калькулятора -->
+                    <div class="bg-[#050811]/60 border border-white/[0.06] rounded-2xl p-6 md:p-8 flex flex-col justify-between shadow-inner relative overflow-hidden">
+                        <div class="absolute top-[-10%] right-[-10%] w-[150px] h-[150px] bg-red-500/5 blur-[50px] rounded-full pointer-events-none"></div>
+                        <div class="space-y-4 relative z-10">
+                            <div class="flex justify-between text-xs text-gray-400">
+                                <span>Месячный ФОТ отдела продаж:</span>
+                                <span class="text-white font-mono font-bold" x-text="(staffCount * staffSalary).toLocaleString() + ' ₸'">1,050,000 ₸</span>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-400">
+                                <span>Слито лидов человеком (~30%):</span>
+                                <span class="text-red-400 font-mono font-bold" x-text="Math.round(leadsCount * 0.30) + ' лидов'">120 лидов</span>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-400">
+                                <span>Потерянная чистая выручка:</span>
+                                <span class="text-red-400 font-mono font-bold" x-text="(Math.round(leadsCount * 0.30) * leadValue).toLocaleString() + ' ₸'">3,600,000 ₸</span>
+                            </div>
+                            <div class="border-t border-white/5 pt-4 flex justify-between text-sm md:text-base font-bold text-white">
+                                <span>Общие издержки ручной системы:</span>
+                                <span class="text-red-500 font-mono" x-text="getCalculatedLoss().toLocaleString() + ' ₸'">4,650,000 ₸</span>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-emerald-500/20 pt-6 mt-8 text-center relative z-10">
+                            <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-black block mb-1">Реальная экономия маржи с KARADA</span>
+                            <p class="text-3xl md:text-4xl font-black text-emerald-400 font-mono drop-shadow-[0_0_15px_rgba(16,185,129,0.2)]" x-text="'+' + getCalculatedSavings().toLocaleString() + ' ₸ / мес'">
+                                +4,550,030 ₸ / мес
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. DREAM / 10X FUTURE (ПЕРЕХОД К МЕЧТЕ ПО БРАНСОНУ) -->
+        <section class="py-20 border-t border-white/[0.06]">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-black text-white uppercase header-font">КАК ИЗМЕНИТСЯ ВАШ БИЗНЕС СИСТЕМНО?</h2>
+                <p class="text-gray-400 mt-2 font-light">Когда вы избавитесь от влияния человеческого фактора на ключевые этапы воронки</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-[#0C101A]/60 p-8 rounded-2xl border border-white/[0.06] hover:border-emerald-500/30 transition-all duration-300">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-6 font-bold text-lg">01</div>
+                    <h3 class="text-lg font-bold text-white mb-3">Прозрачный Контроль 24/7</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed font-semibold">
+                        Вы больше не зависите от настроения менеджеров. Каждый звонок пишется, проверяется ИИ-системой и автоматически логируется в Kommo CRM.
+                    </p>
+                </div>
+                <div class="bg-[#0C101A]/60 p-8 rounded-2xl border border-white/[0.06] hover:border-red-500/30 transition-all duration-300">
+                    <div class="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500 mb-6 font-bold text-lg">02</div>
+                    <h3 class="text-lg font-bold text-white mb-3">Увеличение Среднего Чека</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed font-semibold">
+                        Продавцы перестают демпинговать и давать скидки при первом возражении. Они продают ценность, сохраняя маржу бизнеса.
+                    </p>
+                </div>
+                <div class="bg-[#0C101A]/60 p-8 rounded-2xl border border-white/[0.06] hover:border-purple-500/30 transition-all duration-300">
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 mb-6 font-bold text-lg">03</div>
+                    <h3 class="text-lg font-bold text-white mb-3">Очередь из Клиентов</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed font-semibold">
+                        Благодаря жестким скриптам дожима и высокой скорости отклика, ваши клиенты закрываются на оплату до того, как уйдут искать альтернативы.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. ATTRACTIVE CHARACTER (БЛОК ЭКСПЕРТА - ЮСУП КАРАДА) -->
+        <section class="py-20 border-t border-white/[0.06] bg-[#0C101A]/40 rounded-3xl p-8 my-12 border border-white/[0.06] relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] backdrop-blur-md">
+            <div class="absolute -top-12 -left-12 w-[180px] h-[180px] bg-red-500/10 blur-[60px] rounded-full pointer-events-none"></div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 items-center relative z-10">
+                <div class="md:col-span-1 flex flex-col items-center">
+                    <div class="relative group max-w-[240px]">
+                        <div class="absolute inset-0 bg-[#A51D36]/20 rounded-2xl blur-lg group-hover:bg-[#A51D36]/30 transition-all duration-300"></div>
+                        <!-- Интеграция вашего портретного изображения Юсупа Карада -->
+                        <img src="image_bdcfcf.png" id="founder-img" alt="Юсуп Карада" onerror="this.src='https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=600'" class="w-full h-auto rounded-2xl border border-white/10 relative z-10 shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
+                    </div>
+                </div>
+                <div class="md:col-span-2 space-y-6">
+                    <span class="text-[10px] font-mono text-[#A51D36] bg-[#A51D36]/10 px-3 py-1 rounded-full border border-[#A51D36]/20 uppercase tracking-widest inline-block font-black select-none">
+                        Основатель Университета Продаж
+                    </span>
+                    <h3 class="text-3xl md:text-4xl font-black text-white uppercase header-font">ЮСУП КАРАДА</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed font-semibold">
+                        Практик с многолетним опытом на рынке СНГ. Автор бескомпромиссной системы обучения, превращающей робких сотрудников в «львиц» холодных звонков и высокобюджетных закрытий. Программа KARADA построена не на сухой теории, а на жестких речевых паттернах, нейтрализующих любые клиентские барьеры и заставляющих рынок уважать ваш прайс.
+                    </p>
+                    
+                    <!-- Редакционные Metric Badges -->
+                    <div class="grid grid-cols-2 gap-4 pt-2 select-none">
+                        <div class="bg-[#050811]/80 border border-white/[0.06] p-3 rounded-xl">
+                            <span class="block text-2xl font-black text-[#A51D36] font-mono">15+ ЛЕТ</span>
+                            <span class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">практики на рынке СНГ</span>
+                        </div>
+                        <div class="bg-[#050811]/80 border border-white/[0.06] p-3 rounded-xl">
+                            <span class="block text-2xl font-black text-emerald-400 font-mono">12,000+</span>
+                            <span class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">обученных менеджеров</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. THE SECRET / FRAMEWORK: EPIPHANY BRIDGE (РАЗРУШЕНИЕ ЛОЖНЫХ УБЕЖДЕНИЙ) -->
+        <section class="py-24 border-t border-white/[0.06]">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-black text-white uppercase header-font">Разрушитель возражений и ложных убеждений</h2>
+                <p class="text-gray-400 mt-2 font-light">Кликните на ваше главное сомнение ниже, чтобы получить честный ответ Юсупа:</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 select-none">
+                <button @click="selectedBelief = 1" :class="selectedBelief === 1 ? 'bg-red-950/20 border-red-500/40 text-white shadow-lg' : 'bg-[#0C101A] border-white/[0.08] text-gray-400 hover:border-white/10'" class="p-4 rounded-xl border transition-all text-xs font-bold uppercase text-left">
+                    1. "Скрипты звучат роботизированно"
+                </button>
+                <button @click="selectedBelief = 2" :class="selectedBelief === 2 ? 'bg-red-950/20 border-red-500/40 text-white shadow-lg' : 'bg-[#0C101A] border-white/[0.08] text-gray-400 hover:border-white/10'" class="p-4 rounded-xl border transition-all text-xs font-bold uppercase text-left">
+                    2. "У менеджеров нет мотивации учиться"
+                </button>
+                <button @click="selectedBelief = 3" :class="selectedBelief === 3 ? 'bg-red-950/20 border-red-500/40 text-white shadow-lg' : 'bg-[#0C101A] border-white/[0.08] text-gray-400 hover:border-white/10'" class="p-4 rounded-xl border transition-all text-xs font-bold uppercase text-left">
+                    3. "В стране кризис, у людей нет денег"
+                </button>
+            </div>
+
+            <!-- Belief Destructors Content (Epiphany Bridge) -->
+            <div class="bg-[#0C101A]/90 border border-white/[0.08] rounded-2xl p-6 md:p-8 shadow-2xl relative min-h-[220px] backdrop-blur-md">
+                <div x-show="selectedBelief === 1" class="fade-in text-sm leading-relaxed">
+                    <strong class='text-red-500 block mb-2 uppercase tracking-wide text-xs'>ОПРОВЕРЖЕНИЕ ЮСУПА (The Vehicle):</strong> 
+                    Наша система KARADA строится на исключении роботизированности. Мы учим менеджеров говорить на живом, уверенном языке, сохраняя структуру. Скрипт — это не жесткий текст для зачитывания, это карта ведения клиента. С ней продавец звучит как надежный эксперт, а не автоответчик.
+                </div>
+                <div x-show="selectedBelief === 2" class="fade-in text-sm leading-relaxed">
+                    <strong class='text-red-500 block mb-2 uppercase tracking-wide text-xs'>ОПРОВЕРЖЕНИЕ ЮСУПА (Internal):</strong> 
+                    Сопротивление и лень — это симптомы страха и неопределенности. Когда у сотрудника нет понятного пошагового алгоритма («Что делать, если мне сказали Дорого?»), он просто опускает руки. Как только они увидят первые быстрые сделки и закрытые счета — мотивация взлетит моментально.
+                </div>
+                <div x-show="selectedBelief === 3" class="fade-in text-sm leading-relaxed">
+                    <strong class='text-red-500 block mb-2 uppercase tracking-wide text-xs'>ОПРОВЕРЖЕНИЕ ЮСУПА (External):</strong> 
+                    Во время финансового напряжения компании как никогда остро нуждаются в оптимизации расходов. Именно сейчас спрос на эффективных подрядчиков максимален. Покупатели не перестали тратить, они просто стали избирательнее. Мы научим вас забирать лучшие контракты.
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. EPIPHANY BRIDGE СЛАЙДЕР С ТРИАЛ-КЛОУЗОМ (Error 5 Correction) -->
+        <section class="py-24 border-t border-white/[0.06]" x-data="{ activeStage: 1 }">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-black text-white uppercase header-font">Трансформация ОП: Откровение KARADA</h2>
+                <p class="text-gray-400 mt-2 font-light">Пошаговая деконструкция воронки и уничтожение ложных убеждений сотрудников</p>
+            </div>
+
+            <!-- Индикаторы слайдов -->
+            <div class="flex justify-center gap-2 mb-8 select-none">
+                <template x-for="idx in [1,2,3,4,5]">
+                    <button @click="activeStage = idx" :class="activeStage === idx ? 'w-8 bg-[#A51D36]' : 'w-2 bg-gray-700'" class="h-2 rounded-full transition-all duration-300"></button>
+                </template>
+            </div>
+
+            <!-- Slide contents mapping stageData -->
+            <div class="bg-[#0C101A]/90 border border-white/[0.08] rounded-2xl p-6 md:p-10 min-h-[385px] flex flex-col justify-between shadow-2xl relative backdrop-blur-md">
+                <div class="fade-in text-sm leading-relaxed">
+                    <div x-show="activeStage === 1">
+                        <span class="text-[10px] font-mono text-[#A51D36] uppercase tracking-widest block mb-2">Секрет #1 // Смена Проводника (The Vehicle)</span>
+                        <h3 class="text-2xl font-black text-white mb-4 header-font uppercase">Классические тренинги бессильны. Нужна жесткая речевая система</h3>
+                        <p class="text-gray-400 mb-3 font-medium">Большинство РОПов в Казахстане думают, что менеджерам достаточно дать мотивацию или общие лекции по продажам. Это ошибка. Без готовых жестких скриптов преодоления возражений ваши деньги сгорают впустую.</p>
+                        <p class="text-gray-300 font-semibold italic">Университет KARADA внедряет готовую речевую инфраструктуру прямого действия, которая заставляет клиентов уважать ваш прайс.</p>
+                    </div>
+                    <div x-show="activeStage === 2">
+                        <span class="text-[10px] font-mono text-[#A51D36] uppercase tracking-widest block mb-2">Секрет #2 // Человеческий Фактор (Internal Belief)</span>
+                        <h3 class="text-2xl font-black text-white mb-4 header-font uppercase">Ваши продавцы не ленивы. Им просто не хватает щита</h3>
+                        <p class="text-gray-400 mb-3 font-medium">Вы можете злиться на команду за то, что они боятся совершать холодные звонки или пасуют перед проблемными клиентами. Но страх — это естественная реакция на отсутствие брони.</p>
+                        <p class="text-gray-300 font-semibold italic">Как только менеджер получает математически выверенную реплику дожима, страх сменяется спортивным азартом.</p>
+                    </div>
+                    <div x-show="activeStage === 3">
+                        <span class="text-[10px] font-mono text-[#A51D36] uppercase tracking-widest block mb-2">Секрет #3 // Внешний Рычаг (External Belief)</span>
+                        <h3 class="text-2xl font-black text-white mb-4 header-font uppercase">Кризис — лучшее время для повышения чеков</h3>
+                        <p class="text-gray-400 mb-3 font-medium">Оправдывать падение продаж демпингом конкурентов или спадом экономики — путь к банкротству ТОО. В кризис выигрывает тот, кто умеет продавать ценность и сервис, а не скидки.</p>
+                        <p class="text-gray-300 font-semibold italic">Наша программа учит работать с клиентами, которые находятся намного выше рынка и ценят качество.</p>
+                    </div>
+                    <div x-show="activeStage === 4">
+                        <span class="text-[10px] font-mono text-[#A51D36] uppercase tracking-widest block mb-2">Этап 4 // Квалификация по APES</span>
+                        <h3 class="text-2xl font-black text-white mb-4 header-font uppercase">Моментальная сортировка лидов за 120 секунд</h3>
+                        <p class="text-gray-400 mb-3 font-medium">Менеджеры больше не тратят часы на пустые разговоры с нецелевыми клиентами. Они мгновенно выявляют мотив по системе APES (Престиж, Скорость, Экономия, Безопасность).</p>
+                        <p class="text-gray-300 font-semibold italic">Презентация продукта бьет точно в цель, не оставляя пространства для возражения «Я подумаю».</p>
+                    </div>
+                    <div x-show="activeStage === 5">
+                        <span class="text-[10px] font-mono text-[#A51D36] uppercase tracking-widest block mb-2">Этап 5 // Суверенный Комплаенс</span>
+                        <h3 class="text-2xl font-black text-white mb-4 header-font uppercase">Полная юридическая защита ваших баз данных</h3>
+                        <p class="text-gray-400 mb-3 font-medium">Все сценарии интеграций, записи звонков и логи согласий шифруются и хранятся локально в Казахстане на серверах дата-центра PS.KZ.</p>
+                        <p class="text-gray-300 font-semibold italic">Вы полностью защищены от штрафов уполномоченных органов по Статье 79 КоАП РК.</p>
+                    </div>
+                </div>
+
+                <!-- Триал-Клоуз Гранта Кардона (The Close Trigger) -->
+                <div class="mt-8 pt-8 border-t border-white/[0.08] flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <p class="text-base font-black text-gray-300 italic text-center sm:text-left">
+                        "Вы увидели достаточно информации для принятия решения?"
+                    </p>
+                    <div class="flex gap-3 w-full sm:w-auto select-none">
+                        <button @click="openCheckout()" class="flex-1 sm:flex-none bg-[#A51D36] hover:bg-red-600 text-white font-extrabold text-sm px-6 py-3.5 rounded-xl transition-all transform active:scale-95 shadow-lg shadow-[#A51D36]/30 uppercase header-font">
+                            Да, запустить систему
+                        </button>
+                        <button @click="activeStage = (activeStage < 5) ? activeStage + 1 : 1" class="flex-1 sm:flex-none bg-white/[0.04] hover:bg-white/[0.08] text-white font-bold text-sm px-6 py-3.5 rounded-xl border border-white/[0.08] uppercase" x-text="activeStage === 5 ? 'Повторить заново' : 'Нет, следующий этап'">
+                            Нет, следующий этап
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. ОБЪЕКТИВНАЯ АННИГИЛЯЦИЯ ВОЗРАЖЕНИЙ (OBJ — БЕЗ АККОРДЕОНОВ!) -->
+        <section class="py-24 border-t border-white/[0.06]">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-black text-white uppercase header-font">Уничтожение сомнений собственника бизнеса</h2>
+                <p class="text-gray-400 mt-2 font-light">Жесткие ответы на ключевые страхи B2B-рынка без скрытых блоков</p>
+            </div>
+
+            <div class="space-y-12">
+                <!-- Objection 1 -->
+                <div class="border-l-4 border-[#A51D36] pl-6 py-2">
+                    <h3 class="text-xl font-bold text-white mb-2 uppercase header-font">Возражение #1: «У нас специфический бизнес, ваша система нам не подойдет»</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed mb-4">
+                        <strong class="text-red-500 font-extrabold uppercase tracking-wide text-xs block mb-1">Проблема:</strong> Вы правы, каждый предприниматель в Казахстане уверен, что его клиенты уникальны, и поэтому продолжает терпеть убытки, оправдывая рутину.
+                    </p>
+                    <p class="text-sm text-gray-300 leading-relaxed font-semibold">
+                        <strong class="text-emerald-400 uppercase tracking-wide text-xs block mb-1">Сдвиг парадигмы:</strong> Психология человека при покупке неизменна. Будь то продажа строительных материалов ТОО или медицинских систем — клиент всегда ищет Безопасность, Выгоду и Престиж (APES). Скрипты KARADA бьют точно по этим триггерам, снимая все психологические барьеры.
+                    </p>
+                </div>
+
+                <!-- Objection 2 -->
+                <div class="border-l-4 border-cyan-500 pl-6 py-2">
+                    <h3 class="text-xl font-bold text-white mb-2 uppercase header-font">Возражение #2: «Менеджеры будут сопротивляться обучению и скриптам»</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed mb-4">
+                        <strong class="text-red-500 font-extrabold uppercase tracking-wide text-xs block mb-1">Проблема:</strong> Совершенно верно. Сотрудники всегда саботируют нововведения, потому что боятся выйти из зоны комфорта и показать свою неэффективность.
+                    </p>
+                    <p class="text-sm text-gray-300 leading-relaxed font-semibold">
+                        <strong class="text-emerald-400 uppercase tracking-wide text-xs block mb-1">Сдвиг парадигмы:</strong> В Университете KARADA мы не просто даем файлы. Мы перестраиваем их мышление через параболы и разбор реальных кейсов. Как только они закроют первую крупную сделку по новой системе и получат повышенный процент — саботаж навсегда сменится азартом.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. REVERSAL INVERSION CONTRAST MATRIX (RSK) -->
+        <section class="py-16 border-t border-white/[0.06]">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-5xl font-black text-white uppercase header-font">Матрица выбора: Риски бездействия</h2>
+                <p class="text-gray-400 mt-2 font-light">Жесткое математическое сопоставление путей развития вашего бизнеса</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 mb-12 select-none">
+                <!-- Column 1 -->
+                <div class="bg-red-950/10 border border-red-500/15 p-8 rounded-3xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-red-500/10 text-red-500 text-[9px] font-black uppercase px-3 py-1.5 rounded-bl-xl font-mono border-l border-b border-red-500/20">
+                        Фактор риска
+                    </div>
+                    <h3 class="text-xl font-bold text-red-500 mb-6 flex items-center gap-2 uppercase header-font">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/>
+                        </svg>
+                        Оставить все как есть
+                    </h3>
+                    <ul class="space-y-4 text-xs text-gray-300 font-medium">
+                        <li class="flex gap-2"><span class="text-red-500 font-bold">✗</span> Постоянный слив до 30% входящих заявок из-за долгих ответов менеджеров.</li>
+                        <li class="flex gap-2"><span class="text-red-500 font-bold">✗</span> Выдача бесконечных необоснованных скидок клиентам, убивающих чистую маржу.</li>
+                        <li class="flex gap-2 border-t border-red-500/10 pt-4 font-mono text-red-400 font-bold">Итоговый годовой убыток: ~3,600,000 ₸</li>
+                    </ul>
+                </div>
+
+                <!-- Column 2 -->
+                <div class="bg-emerald-950/10 border border-emerald-500/15 p-8 rounded-3xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-emerald-500 text-black text-[9px] font-black uppercase px-3 py-1.5 rounded-bl-xl font-mono">
+                        Рекомендовано
+                    </div>
+                    <h3 class="text-xl font-bold text-emerald-400 mb-6 flex items-center gap-2 uppercase header-font">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                        </svg>
+                        Внедрить систему KARADA 10X
+                    </h3>
+                    <ul class="space-y-4 text-xs text-gray-300 font-medium">
+                        <li class="flex gap-2"><span class="text-emerald-500 font-bold">✓</span> Мгновенная перестройка ОП под дорогие чеки и закрытие сложных клиентов.</li>
+                        <li class="flex gap-2"><span class="text-emerald-500 font-bold">✓</span> Четкий алгоритм преодоления возражения «Подумаю» и жесткий контроль лидов.</li>
+                        <li class="flex gap-2 border-t border-emerald-500/10 pt-4 font-mono text-emerald-400 font-bold">Итоговая годовая выгода: +4,550,030 ₸</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Disclaimer (The Reversal Inversion) -->
+            <div class="bg-[#0C101A]/80 border border-white/[0.08] rounded-3xl p-8 relative overflow-hidden shadow-2xl flex flex-col md:flex-row items-center gap-8 backdrop-blur-md">
+                <div class="shrink-0 w-24 h-24 rounded-full border-4 border-red-500/40 flex flex-col items-center justify-center p-2 relative bg-black/50 select-none shadow-[0_0_30px_rgba(239,68,68,0.15)]">
+                    <svg class="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                    <span class="text-[8px] font-mono text-center font-bold text-gray-400 mt-1">ОБЯЗАННОСТЬ</span>
+                </div>
+                <div class="flex-grow space-y-2">
+                    <h4 class="text-lg font-black text-white uppercase header-font">Уведомление об ответственности сторон</h4>
+                    <p class="text-xs text-gray-400 leading-relaxed font-semibold">
+                        Университет KARADA предоставляет вам совершенное, проверенное временем оружие продаж. Однако вы должны осознавать: **успех вашего бизнеса — это ваша обязанность, долг и персональная ответственность**. Мы не продаем «волшебные кнопки» для ленивых. Результат требует от вас решимости внедрить систему и заставить команду следовать стандартам.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 9. МНОГОУРОВНЕВЫЙ ИНТЕРАКТИВНЫЙ СТЕК ЦЕННОСТИ (VALUE STACK BUILDER 2.0) -->
+        <section id="value-stack" class="py-24 border-t border-white/[0.06] scroll-mt-20">
+            <div class="bg-[#0C101A]/90 border border-white/[0.08] rounded-3xl p-8 md:p-12 relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-md">
+                <div class="absolute top-0 right-0 p-4 select-none">
+                    <span class="text-xs font-mono text-[#A51D36] bg-[#A51D36]/10 px-3 py-1 rounded-full border border-[#A51D36]/20 uppercase tracking-widest font-black">Экономия 88%</span>
+                </div>
+
+                <h2 class="text-3xl md:text-5xl font-black text-white text-center mb-6 uppercase header-font">Соберите пакет ценности под ваш ОП:</h2>
+                <p class="text-center text-xs text-gray-400 mb-10 font-light">Кликните, чтобы добавить или исключить модули внедрения:</p>
+                
+                <div class="space-y-4 mb-12 text-sm select-none">
+                    <!-- Item 1 -->
+                    <div @click="stackState[1] = !stackState[1]; pushLog('Изменение структуры Value Stack: Модуль 1')" 
+                         :class="stackState[1] ? 'border-emerald-500/20 bg-emerald-950/10' : 'border-white/5 bg-black/20 opacity-50'"
+                         class="flex justify-between items-center border p-5 rounded-2xl cursor-pointer transition-all duration-300">
+                        <div class="flex items-center gap-4">
+                            <span :class="stackState[1] ? 'bg-emerald-500 text-black' : 'bg-gray-700 text-gray-400'" class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs" x-text="stackState[1] ? '✓' : '+'">✓</span>
+                            <div>
+                                <h4 class="font-bold text-white text-base">Доступ к Университету KARADA (Полный Базовый Контур)</h4>
+                                <p class="text-[10px] text-gray-400 mt-0.5">Включая базовые видеокурсы и тесты.</p>
+                            </div>
+                        </div>
+                        <span class="text-red-500 font-mono line-through font-semibold text-base">150,000 ₸</span>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div @click="stackState[2] = !stackState[2]; pushLog('Изменение структуры Value Stack: Модуль 2')" 
+                         :class="stackState[2] ? 'border-emerald-500/20 bg-emerald-950/10' : 'border-white/5 bg-black/20 opacity-50'"
+                         class="flex justify-between items-center border p-5 rounded-2xl cursor-pointer transition-all duration-300">
+                        <div class="flex items-center gap-4">
+                            <span :class="stackState[2] ? 'bg-emerald-500 text-black' : 'bg-gray-700 text-gray-400'" class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs" x-text="stackState[2] ? '✓' : '+'">✓</span>
+                            <div>
+                                <h4 class="font-bold text-white text-base">Скрипты обхода "Подумаю" и удержания цены для СНГ</h4>
+                                <p class="text-[10px] text-gray-400 mt-0.5">Проверенные текстовые реплики Юсупа.</p>
+                            </div>
+                        </div>
+                        <span class="text-red-500 font-mono line-through font-semibold text-base">250,000 ₸</span>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div @click="stackState[3] = !stackState[3]; pushLog('Изменение структуры Value Stack: Модуль 3')" 
+                         :class="stackState[3] ? 'border-emerald-500/20 bg-emerald-950/10' : 'border-white/5 bg-black/20 opacity-50'"
+                         class="flex justify-between items-center border p-5 rounded-2xl cursor-pointer transition-all duration-300">
+                        <div class="flex items-center gap-4">
+                            <span :class="stackState[3] ? 'bg-emerald-500 text-black' : 'bg-gray-700 text-gray-400'" class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs" x-text="stackState[3] ? '✓' : '+'">✓</span>
+                            <div>
+                                <h4 class="font-bold text-white text-base">Система РОП-контроля и аттестации</h4>
+                                <p class="text-[10px] text-gray-400 mt-0.5">Чек-листы, метрики удержания клиентов.</p>
+                            </div>
+                        </div>
+                        <span class="text-red-500 font-mono line-through font-semibold text-base">300,000 ₸</span>
+                    </div>
+
+                    <!-- Item 4 -->
+                    <div @click="stackState[4] = !stackState[4]; pushLog('Изменение структуры Value Stack: Модуль 4')" 
+                         :class="stackState[4] ? 'border-emerald-500/20 bg-emerald-950/10' : 'border-white/5 bg-black/20 opacity-50'"
+                         class="flex justify-between items-center border p-5 rounded-2xl cursor-pointer transition-all duration-300">
+                        <div class="flex items-center gap-4">
+                            <span :class="stackState[4] ? 'bg-emerald-500 text-black' : 'bg-gray-700 text-gray-400'" class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs" x-text="stackState[4] ? '✓' : '+'">✓</span>
+                            <div>
+                                <h4 class="font-bold text-white text-base">Личный аудит и разбор звонков от кураторов KARADA</h4>
+                                <p class="text-[10px] text-gray-400 mt-0.5">Нахождение критических ошибок.</p>
+                            </div>
+                        </div>
+                        <span class="text-red-500 font-mono line-through font-semibold text-base">150,000 ₸</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center mb-12 font-mono" x-data="{
+                    getSumValue() {
+                        let total = 200000;
+                        if (stackState[1]) total += 150000;
+                        if (stackState[2]) total += 250000;
+                        if (stackState[3]) total += 300000;
+                        if (stackState[4]) total += 150000;
+                        return total;
+                    }
+                }">
+                    <span class="text-lg md:text-xl font-bold text-gray-400">Реальная ценность вашей конфигурации:</span>
+                    <span class="text-2xl md:text-3xl font-black text-red-500 line-through" x-text="getSumValue().toLocaleString() + ' ₸'">850,000 ₸</span>
+                </div>
+
+                <!-- Карточка цены -->
+                <div class="text-center bg-[#050811]/90 border border-white/[0.08] p-8 rounded-2xl shadow-inner relative overflow-hidden">
+                    <div class="absolute top-[-15px] inset-x-0 flex justify-center select-none z-10">
+                        <span class="bg-[#A51D36] text-white text-[10px] font-bold px-4 py-1.5 rounded-full uppercase tracking-widest border border-red-500 animate-bounce" x-text="'Только ' + seatsLeft + ' слота со скидкой!'">
+                            Только 3 слота со скидкой!
+                        </span>
+                    </div>
+
+                    <p class="text-xs uppercase tracking-[0.2em] text-[#A51D36] font-black mb-1 mt-4">Месячное абонентское сопровождение воронки</p>
+                    <p class="text-6xl md:text-7xl font-black text-white font-mono mb-6 animate-pulse select-none">
+                        99,970 ₸ <span class="text-2xl text-gray-500 font-medium font-sans">/ мес</span>
+                    </p>
+                    
+                    <button @click="openCheckout()" class="w-full bg-gradient-to-r from-red-600 to-orange-500 text-white text-xl md:text-2xl font-black py-6 px-8 rounded-xl shadow-[0_10px_40px_rgba(165,29,54,0.4)] transition-all transform hover:scale-[1.01] flex items-center justify-center gap-3 active:scale-95 uppercase header-font">
+                        ПОЛУЧИТЬ ДОСТУП К СИСТЕМЕ 
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </button>
+                    <p class="mt-4 text-xs text-gray-400 select-none font-medium">Таймер фиксации акционной стоимости: <span class="text-white font-mono font-bold" x-text="formatTime(timeLeft)">15:00</span></p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 10. 2-STEP CHECKOUT SYSTEM WITH MULTIPLE BUMP OFFERS (Error 2 Correction) -->
+    <div id="checkout-modal" :class="checkoutModal ? '' : 'hidden'" class="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-[#0C101A] border border-white/[0.08] rounded-3xl w-full max-w-md overflow-hidden shadow-2xl relative">
+            <button @click="closeCheckout()" class="absolute top-4 right-4 text-gray-500 hover:text-white font-bold text-sm select-none">✕</button>
+
+            <!-- Шаг 1: Контактный интейк (Сбор данных в CRM) -->
+            <div id="step-intake" x-show="checkoutStep === 'intake'" class="p-6 md:p-8">
+                <div class="text-center mb-6">
+                    <svg class="w-10 h-10 text-[#A51D36] mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                    <h3 class="text-xl font-black text-white uppercase header-font">Регистрация в Университете</h3>
+                    <p class="text-xs text-gray-400 mt-1 font-light">Шаг 1 из 2: Закрепление контактов в amoCRM</p>
+                </div>
+                <form @submit.prevent="handleIntakeSubmit()" class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-1">Имя Руководителя:</label>
+                        <input type="text" x-model="leadName" required placeholder="Бауыржан Смаилов" class="w-full bg-[#050811] border border-white/[0.08] rounded-lg p-3 text-sm text-white focus:outline-none focus:border-[#A51D36] transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-1">Название ТОО / ИП:</label>
+                        <input type="text" x-model="companyName" required placeholder="ТОО ПромТех Алматы" class="w-full bg-[#050811] border border-white/[0.08] rounded-lg p-3 text-sm text-white focus:outline-none focus:border-[#A51D36] transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-1">Номер телефона (11 цифр):</label>
+                        <input type="tel" x-model="leadPhone" required placeholder="+7 701 123 45 67" class="w-full bg-[#050811] border border-white/[0.08] rounded-lg p-3 text-sm text-white focus:outline-none focus:border-[#A51D36] transition-colors">
+                    </div>
+                    <div class="space-y-2 pt-2">
+                        <label class="flex gap-2.5 items-start cursor-pointer select-none">
+                            <input type="checkbox" x-model="consentPDPL" required class="mt-0.5 accent-[#A51D36]">
+                            <span class="text-[9px] text-gray-400 leading-relaxed">Даю согласие на локальную обработку моих данных в РК на сервере PS.KZ в соответствии со ст. 79 Закона о Персональных данных РК.</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="w-full bg-[#A51D36] hover:bg-red-600 text-white font-extrabold text-sm p-3.5 rounded-lg mt-4 transition-all flex justify-center items-center gap-2 active:scale-95 uppercase header-font">
+                        Перейти к оплате через Kaspi QR 
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Шаг 2: Только после фиксации контакта — Выставление счета Kaspi QR с Bump Offer -->
+            <div id="step-billing" x-show="checkoutStep === 'billing'" class="p-6 md:p-8 text-center animate-fade-in">
+                <div class="flex items-center justify-between mb-4 border-b border-white/[0.06] pb-3 select-none">
+                    <span class="text-xs font-bold text-gray-400 uppercase">Счет Kaspi Pay</span>
+                    <span class="text-xs font-mono text-gray-500">ID: #8921-90</span>
+                </div>
+
+                <!-- BUMP OFFER MODULE 1 -->
+                <div @click="bump1Selected = !bump1Selected; toggleBump(1)" id="bump-box-1" :class="bump1Selected ? 'bg-[#A51D36]/10 border-[#A51D36]/40 select-none animate-pulse' : 'bg-black/30 border-white/5 hover:border-white/10 select-none'" class="my-3 p-3.5 rounded-xl border text-left cursor-pointer transition-all">
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" x-model="bump1Selected" class="accent-[#A51D36]" pointer-events-none>
+                        <div class="flex-grow">
+                            <span class="text-[9px] font-mono text-[#A51D36] font-black uppercase tracking-wider block mb-0.5">ВЫГОДНОЕ ДОПОЛНЕНИЕ (BUMP #1)</span>
+                            <h4 class="text-xs font-bold text-white leading-tight">Добавить Аудит Звонков Лично от Юсупа (+45,000 ₸)</h4>
+                            <p class="text-[9px] text-gray-400 mt-1 leading-tight font-medium">
+                                Персональный детальный разбор 5 реальных разговоров ваших менеджеров.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BUMP OFFER MODULE 2 -->
+                <div @click="bump2Selected = !bump2Selected; toggleBump(2)" id="bump-box-2" :class="bump2Selected ? 'bg-[#A51D36]/10 border-[#A51D36]/40 select-none animate-pulse' : 'bg-black/30 border-white/5 hover:border-white/10 select-none'" class="my-3 p-3.5 rounded-xl border text-left cursor-pointer transition-all">
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" x-model="bump2Selected" class="accent-[#A51D36]" pointer-events-none>
+                        <div class="flex-grow">
+                            <span class="text-[9px] font-mono text-[#A51D36] font-black uppercase tracking-wider block mb-0.5">ВЫГОДНОЕ ДОПОЛНЕНИЕ (BUMP #2)</span>
+                            <h4 class="text-xs font-bold text-white leading-tight">Добавить 100+ Скриптов Дожима WhatsApp (+15,000 ₸)</h4>
+                            <p class="text-[9px] text-gray-400 mt-1 leading-tight font-medium">
+                                Шаблоны реплик для вовлечения клиентов, переставших выходить на связь.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- QR Элемент (Premium Scan Design) -->
+                <div class="my-6 w-44 h-44 bg-white p-3.5 rounded-2xl mx-auto flex flex-col items-center justify-center border-4 border-red-500 relative overflow-hidden select-none shadow-[0_10px_30px_rgba(239,68,68,0.2)]">
+                    <div class="absolute inset-x-0 h-1 bg-red-500 laser-line shadow-[0_0_10px_#EF4444] z-10"></div>
+                    <div class="grid grid-cols-4 gap-1.5 w-full h-full opacity-70">
+                        <div class="bg-black rounded-xs"></div><div class="bg-transparent"></div><div class="bg-black"></div><div class="bg-black"></div>
+                        <div class="bg-transparent"></div><div class="bg-black"></div><div class="bg-transparent"></div><div class="bg-transparent"></div>
+                        <div class="bg-black"></div><div class="bg-transparent"></div><div class="bg-black"></div><div class="bg-transparent"></div>
+                        <div class="bg-black"></div><div class="bg-black"></div><div class="bg-transparent"></div><div class="bg-black"></div>
+                    </div>
+                    <div class="absolute bg-black px-2.5 py-1 text-[8px] tracking-widest text-white border border-white/10 rounded font-mono font-bold">KASPI_PAY_QR</div>
+                </div>
+
+                <!-- Динамическая стоимость счета -->
+                <div class="mb-5 bg-[#050811] border border-white/[0.06] p-3 rounded-xl flex justify-between items-center select-none font-mono">
+                    <span class="text-[10px] text-gray-500 uppercase tracking-wider">Итого к оплате:</span>
+                    <strong class="text-xl font-black text-white" x-text="getFinalPrice().toLocaleString() + ' ₸'">99,970 ₸</strong>
+                </div>
+
+                <div class="space-y-4">
+                    <button @click="simulatePaymentSuccess()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-emerald-500/20">
+                        ИМИТИРОВАТЬ УСПЕШНУЮ ОПЛАТУ (для демо)
+                    </button>
+                    <div class="flex items-center justify-center gap-2 text-[10px] font-mono text-gray-500">
+                        <svg class="w-3.5 h-3.5 animate-spin text-[#A51D36]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 4.79M9 11l3 3L22 4"/>
+                        </svg>
+                        <span>Ожидание транзакционного вебхука...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Шаг 3: Успешный транзакционный вебхук -->
+            <div id="step-success" x-show="checkoutStep === 'success'" class="p-6 md:p-8 text-center animate-fade-in">
+                <svg class="w-12 h-12 text-emerald-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+                <h3 class="text-xl font-black text-white uppercase header-font">Регистрация подтверждена</h3>
+                <p class="text-xs text-gray-400 mt-1 font-light">Событие зафиксировано на сервере в Алматы.</p>
+                
+                <div class="my-5 p-4 bg-black/40 rounded-xl border border-white/5 text-left text-[9px] font-mono space-y-1">
+                    <p class="text-gray-500">// n8n Pipeline Data Capture:</p>
+                    <p class="text-[#A51D36]">org_name: "<span x-text="companyName"></span>"</p>
+                    <p class="text-emerald-400">client_phone: "<span x-text="leadPhone"></span>"</p>
+                    <p class="text-emerald-400">bump_1_added: "<span x-text="bump1Selected ? 'YES (+45,000 ₸)' : 'NO'">NO</span>"</p>
+                    <p class="text-emerald-400">bump_2_added: "<span x-text="bump2Selected ? 'YES (+15,000 ₸)' : 'NO'">NO</span>"</p>
+                </div>
+
+                <button @click="closeCheckout()" class="w-full bg-[#050811] hover:bg-black text-white text-xs font-bold p-3 rounded-lg border border-white/10 transition-colors">
+                    Вернуться назад
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 11. GUARANTEE (RISK REVERSAL) -->
+    <section class="py-24 border-t border-white/[0.06]">
+        <div class="max-w-4xl mx-auto bg-[#0C101A]/80 border-2 border-[#A51D36]/40 rounded-3xl p-8 md:p-12 relative overflow-hidden shadow-2xl flex flex-col md:flex-row items-center gap-8 backdrop-blur-md select-none">
+            <div class="shrink-0 w-28 h-28 rounded-full border-4 border-[#A51D36]/40 flex flex-col items-center justify-center p-2 relative bg-black/50 shadow-[0_0_30px_rgba(165,29,54,0.15)]">
+                <svg class="w-12 h-12 text-[#A51D36]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+                <span class="text-[8px] font-mono text-center font-bold text-gray-400 mt-1 uppercase">100% ГАРАНТИЯ</span>
+            </div>
+            <div class="flex-grow space-y-3">
+                <h4 class="text-2xl font-black text-white uppercase header-font">ЖЕЛЕЗОБЕТОННАЯ ГАРАНТИЯ ВНЕДРЕНИЯ</h4>
+                <p class="text-sm text-gray-400 leading-relaxed font-semibold">
+                    Мы полностью снимаем с вас финансовый риск. Если в течение первых 30 дней после прохождения Университета и внедрения наших скриптов ваш отдел продаж не предотвратит упущенную выгоду на сумму, превышающую стоимость обучения — **мы вернем вам 100% оплаченной суммы**. Все условия фиксируются в официальном договоре ТОО.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 12. FINAL CALL-TO-ACTION (CARDONE STYLE) -->
+    <section class="py-24 border-t border-white/[0.06] text-center select-none">
+        <h2 class="text-4xl md:text-6xl font-black text-white uppercase header-font mb-6">ХВАТИТ ЖИТЬ ОТ СДЕЛКИ К СДЕЛКЕ</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto mb-12 font-medium">Ваши конкуренты прямо сейчас забирают вашу долю рынка на Kaspi и в поиске. Либо вы перестраиваете ОП по стандартам 10X, либо ваш бизнес медленно увядает.</p>
+        <button @click="openCheckout()" class="bg-[#A51D36] hover:bg-red-600 text-white text-xl md:text-2xl font-black py-6 px-12 rounded-xl shadow-[0_10px_35px_rgba(165,29,54,0.3)] transition-all transform active:scale-95 uppercase header-font">
+            Получить разбор бизнеса Юсупом Карада
+        </button>
+    </section>
+
+    <!-- REAL-TIME CONSOLE LOGGER (N8N PIPELINE AUDITOR) -->
+    <footer class="w-full bg-[#0C101A]/95 border-t border-white/[0.06] p-4 font-mono text-[10px] backdrop-blur-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 z-30 select-none">
+        <div class="flex items-center gap-3 shrink-0">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+            <span class="text-gray-300 font-bold tracking-wider text-[9px]">N8N PIPELINE & PDPL AUDITOR:</span>
+        </div>
+        <div class="flex-grow overflow-x-auto whitespace-nowrap text-emerald-400 scrollbar-none text-[9px]" x-text="logs[logs.length - 1]">
+            [SYSTEM] Контур /roi активирован. Ожидание первого клика по калькулятору окупаемости...
+        </div>
+        <div class="flex gap-2 shrink-0">
+            <span class="px-2 py-1 bg-white/5 rounded text-gray-400 text-[8px] border border-white/5">PROD_MODE</span>
+            <span class="px-2 py-1 bg-[#A51D36]/10 text-[#A51D36] text-[8px] rounded border border-[#A51D36]/20 font-bold">ALMATY VPS OK</span>
+        </div>
+    </footer>
+
+    <!-- Сценарные инициализации для Стек ценности -->
+    <script>
+        // Инициализируем стек в ванильном контексте для Alpine
+        const stackState = { 1: true, 2: true, 3: true, 4: true };
+    </script>
+</body>
+</html>
